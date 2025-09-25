@@ -1,6 +1,7 @@
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqIO
+import numpy as np
 def correct_iupac_in_ab1(ab1_path, output_fasta):
     rec  = SeqIO.read(ab1_path, "abi")
     abif = rec.annotations["abif_raw"]
@@ -28,6 +29,16 @@ def correct_iupac_in_ab1(ab1_path, output_fasta):
     # Create base dict index
     base_to_index = {i: b for i, b in enumerate(BASES)}
     base_to_index
+
+    IUPAC_FROM_SET = {
+    frozenset(("A","G")):"R", frozenset(("C","T")):"Y",
+    frozenset(("A","C")):"M", frozenset(("G","T")):"K",
+    frozenset(("C","G")):"S", frozenset(("A","T")):"W",
+    frozenset(("C","G","T")):"B", frozenset(("A","G","T")):"D",
+    frozenset(("A","C","T")):"H", frozenset(("A","C","G")):"V",
+    frozenset(("A","C","G","T")):"N",
+    }
+    iupac_list = list(IUPAC_FROM_SET.values())
 
     # detected iupac 
     iupac_detected = {}
@@ -81,7 +92,13 @@ def define_file_lists(ab1_dir):
 
 if __name__ == "__main__":
     # execute correction for each file
-    ab1_dir = "sequence_ab1"
+    # Define argument
+    import sys
+    if len(sys.argv) > 1:
+        ab1_dir = sys.argv[1]
+    else:
+        print("No directory argument provided, please provide the directory containing the ab1 files.")
+        sys.exit(1)
     files_filtered, names, output_dir = define_file_lists(ab1_dir)
     for ab1_path, name in zip(files_filtered, names):
         output_fasta = output_dir / f"{name}.fasta"
